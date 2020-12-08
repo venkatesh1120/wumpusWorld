@@ -1,0 +1,387 @@
+package wumpusworld;
+
+/**
+ * Contains starting code for creating your own Wumpus World agent.
+ * Currently the agent only make a random decision each turn.
+ * 
+ * @author Johan Hagelbäck
+ */
+public class MyAgent implements Agent
+{
+    private World w;
+    int rnd;
+
+    /**
+     * Creates a new instance of your solver agent.
+     * 
+     * @param world Current world state 
+     */
+    public MyAgent(World world)
+    {
+        w = world;   
+    }
+
+    /**
+     * Asks your solver agent to execute an action.
+     */
+    public void doAction()
+    {
+        //Location of the player
+        int cX = w.getPlayerX();
+        int cY = w.getPlayerY();
+
+        //Basic action:
+        //Grab Gold if we can.
+        if (w.hasGlitter(cX, cY))
+        {
+            w.doAction(World.A_GRAB);
+            return;
+        }
+
+        //Basic action:
+        //We are in a pit. Climb up.
+        if (w.isInPit())
+        {
+            w.doAction(World.A_CLIMB);
+            return;
+        }
+
+//find move 
+        decideTheMove(cX, cY);
+    }    
+
+    public void decideTheMove(int cX, int cY)
+    {
+        if (w.hasStench(cX, cY))
+        {
+            System.out.println("inside hasStench method");
+            stenchdecider(cX, cY);
+        }
+        else if(w.getDirection() == World.DIR_RIGHT)
+        {
+            System.out.println("inside right method");
+            rightdecider(cX, cY);
+        }
+        else if(w.getDirection() == World.DIR_LEFT)
+        {
+            System.out.println("inside left method");
+            leftdecider(cX, cY);
+        }
+        else if(w.getDirection() == World.DIR_UP)
+        {
+            System.out.println("inside up method");
+            updecider(cX, cY);
+        }
+        else if(w.getDirection() == World.DIR_DOWN)
+        {
+            System.out.println("inside up method");
+            downdecider(cX, cY);
+        }
+    }
+//method for when in stench
+public void stenchdecider(int cX, int cY){
+ if (!w.isValidPosition(cX-1, cY) && !w.isValidPosition(cX, cY-1) && w.hasArrow())
+        {
+            if(w.getDirection() == World.DIR_RIGHT){
+              w.doAction(World.A_SHOOT);
+            }
+            else if(w.getDirection() == World.DIR_LEFT){
+                w.doAction(World.A_TURN_RIGHT);
+            }
+            else if(w.getDirection() == World.DIR_DOWN){
+                w.doAction(World.A_TURN_RIGHT);
+                }
+            else{
+                w.doAction(World.A_TURN_LEFT);}
+        }
+        else if (w.isUnknown(cX, cY+1) && w.isUnknown(cX+1, cY)  && !w.hasArrow())
+        {
+            System.out.println("no arrow go ahead");
+            w.doAction(World.A_MOVE);
+        }
+        
+          else   if(w.hasStench(cX-1, cY-1) && !w.hasArrow()) 
+        {
+            if(w.getDirection() == World.DIR_UP){
+            w.doAction(World.A_MOVE);
+            }
+                
+            else if(w.getDirection() == World.DIR_LEFT){
+             w.doAction(World.A_TURN_RIGHT);
+            }
+               
+          /*  else if(w.getDirection() == World.DIR_DOWN)
+                w.doAction(World.A_TURN_RIGHT);
+            else
+                w.doAction(World.A_TURN_LEFT);*/
+        }  
+        
+ else if(w.hasStench(cX-1, cY-1) ){//adjacent stench turn to likely position to shoot wumpus
+                    
+                    if( w.isVisited(cX-1, cY)){
+                            
+                         if (w.getDirection() == World.DIR_RIGHT  && w.hasArrow())
+                            {
+                            w.doAction(World.A_TURN_RIGHT);
+                            }
+                          else if (w.getDirection() == World.DIR_DOWN && w.hasArrow())
+                            {
+                            w.doAction(World.A_SHOOT);
+                            }
+                        }
+                    
+
+                }
+else if (w.getDirection() == World.DIR_RIGHT)  
+    {
+               if (w.isVisited(cX, cY-1) && w.hasStench(cX+1, cY-1) && !(w.isValidPosition(cX-1, cY)))// adjacent breezes could mean wumpus likely in ajacent cave
+                { 
+                    w.doAction(World.A_SHOOT);                    
+                }
+                else if(w.isVisited(cX-1, cY) && w.hasBreeze(cX-1, cY) && w.isUnknown(cX, cY-1) ){
+                    w.doAction(World.A_SHOOT);
+                }
+                else if(w.isVisited(cX-1, cY) && w.hasBreeze(cX, cY) && !w.isValidPosition(cX+1, cY) ){
+                    w.doAction(World.A_TURN_LEFT);
+                    w.doAction(World.A_SHOOT);
+                    w.doAction(World.A_MOVE);
+                }
+                
+               else
+               {
+               System.out.println("inside left method turning back");
+               w.doAction(World.A_TURN_RIGHT);
+               w.doAction(World.A_TURN_RIGHT);
+               w.doAction(World.A_MOVE);
+               }
+    }
+else if (w.getDirection() == World.DIR_UP && w.isVisited(cX, cY-1))  
+{
+w.doAction(World.A_MOVE);
+    }
+else if (w.getDirection() == World.DIR_LEFT )  
+    {
+        if( w.isVisited(cX, cY-1) && w.isUnknown(cX, cY+1)){
+                w.doAction(World.A_TURN_LEFT);
+                w.doAction(World.A_MOVE);
+                }
+        else{
+        w.doAction(World.A_TURN_LEFT);
+            }
+    }
+else if(w.hasStench(cX, cY-1) && w.isVisited(cX, cY+1)){
+        
+        w.doAction(World.A_TURN_LEFT);
+        w.doAction(World.A_SHOOT);
+    }
+else{
+w.doAction(World.A_MOVE);
+}
+
+}
+//method for when facing right
+public void rightdecider(int cX, int cY){
+System.out.println("inside right method");
+        if(w.hasBreeze(cX, cY))
+        {
+        if(w.hasBreeze(cX, cY-1) && w.hasStench(cX, cY-1) && w.isUnknown(cX-1, cY+1)  && w.isUnknown(cX, cY+1))
+        {
+            w.doAction(World.A_TURN_LEFT);
+            w.doAction(World.A_TURN_LEFT);
+             w.doAction(World.A_MOVE);
+        }
+        if(w.isValidPosition(cX+1, cY) && w.isUnknown(cX+1, cY) && w.isValidPosition(cX+3, cY) && w.isUnknown(cX+3, cY) && w.isValidPosition(cX+2, cY) && w.isUnknown(cX+2, cY))
+            {
+                w.doAction(World.A_TURN_LEFT);
+                w.doAction(World.A_MOVE);
+            }
+        
+}
+        if (w.getDirection() == World.DIR_RIGHT)
+                {
+                    if(w.isValidPosition(cX+1, cY))//ahead has valid position
+                    {
+                        if(w.isUnknown(cX+1, cY))//move forward
+                        {
+                            w.doAction(World.A_MOVE);
+                        }
+                        else if(w.hasStench(cX-1, cY))//move forward because last cave is not safe
+                        {
+                            w.doAction(World.A_MOVE);
+                        }
+                        else if(w.isVisited(cX+1, cY))//discover new because already visited
+                        {
+                            if(w.hasStench(cX+1, cY) && w.hasBreeze(cX+1, cY) && w.isVisited(cX-1, cY) && w.hasBreeze(cX-1, cY)){
+                                
+                            }
+                            else{
+                            w.doAction(World.A_TURN_LEFT);
+                            w.doAction(World.A_MOVE);
+                            }
+                         }
+                    }
+                    else if(!w.isValidPosition(cX+1, cY) && !w.isValidPosition(cX, cY-1) && w.isValidPosition(cX, cY-1) ){// wall u turn
+                        w.doAction(World.A_TURN_RIGHT);
+                            w.doAction(World.A_MOVE);
+                     }
+                    
+                }
+                
+        if(w.hasBreeze(cX, cY))//DIRECTION RIGHT HAS BREEZE
+        {
+             if(!w.isValidPosition(cX+1, cY))//facing wall turn
+            {
+                w.doAction(World.A_TURN_RIGHT);
+                w.doAction(World.A_TURN_RIGHT);
+                w.doAction(World.A_TURN_RIGHT);
+                w.doAction(World.A_MOVE);
+            }
+            
+        }
+        else if( !w.isValidPosition(cX+1, cY)){
+            w.doAction(World.A_TURN_LEFT);
+            w.doAction(World.A_MOVE);
+        }
+        
+}
+public void leftdecider(int cX, int cY)
+{ 
+System.out.println("inside left method");
+    if (w.getDirection() == World.DIR_LEFT )
+    {
+System.out.println("inside left method");
+            if(w.isValidPosition(cX+1, cY) )
+            {
+System.out.println("inside  method");
+               if(w.isUnknown(cX-1, cY) || w.isUnknown(cX+1, cY))
+                {
+                w.doAction(World.A_MOVE);
+                }
+               else if(w.isUnknown(cX-1, cY) && w.hasBreeze(cX, cY-1) && w.hasBreeze(cX-1, cY-1))
+                {
+                w.doAction(World.A_TURN_RIGHT);
+                }
+                else if(w.hasBreeze(cX, cY+1) && w.hasBreeze(cX+1, cY) && w.hasBreeze(cX, cY-1))
+                {
+                w.doAction(World.A_TURN_LEFT);
+                w.doAction(World.A_MOVE);
+                }
+              
+            else { 
+                w.doAction(World.A_TURN_RIGHT);
+                w.doAction(World.A_MOVE);
+                w.doAction(World.A_TURN_RIGHT);
+                }
+            
+        }
+ 
+    }
+}
+public void updecider(int cX, int cY){
+        
+        if(w.hasBreeze(cX, cY) && !w.isValidPosition(cX+1, cY)){
+           
+                    System.out.println("up");
+                    w.doAction(World.A_TURN_LEFT);
+                    w.doAction(World.A_MOVE);
+        
+        }
+if(w.hasBreeze(cX, cY))
+        {
+            System.out.println("up 1");
+            
+            if(w.hasBreeze(cX, cY-1) && w.isVisited(cX, cY-2))
+            {
+                if(!w.hasBreeze(cX, cY-2))
+                {
+                    w.doAction(World.A_TURN_RIGHT);
+                    w.doAction(World.A_TURN_RIGHT);
+                    w.doAction(World.A_MOVE);
+                }
+                else if(w.hasBreeze(cX, cY-2))
+                {
+                    w.doAction(World.A_TURN_RIGHT);
+                    w.doAction(World.A_MOVE);
+                    
+                }
+                
+            }
+        }
+        if(w.hasBreeze(cX, cY-1) && !w.isValidPosition(cX+1, cY) && !w.isValidPosition(cX, cY-2))
+        {
+            System.out.println("up 2");
+            w.doAction(World.A_MOVE);
+        }
+        if (w.getDirection() == World.DIR_UP)
+        {
+             
+               if(w.isValidPosition(cX+1, cY)) {
+                    w.doAction(World.A_TURN_RIGHT);
+                    w.doAction(World.A_MOVE);
+                    
+                }
+                else if(!w.isValidPosition(cX, cY+1) && !w.isValidPosition(cX+1, cY) ) {
+                    w.doAction(World.A_TURN_RIGHT);
+                    w.doAction(World.A_TURN_RIGHT);     
+                    w.doAction(World.A_MOVE);
+                    
+                    
+                }
+                else if(!w.isValidPosition(cX+1, cY))//no cave on top turn
+                {   
+                System.out.println("up6");
+                    w.doAction(World.A_TURN_LEFT);
+                    w.doAction(World.A_MOVE);
+                    
+                }
+                else{
+                    System.out.println("up6");
+                    w.doAction(World.A_TURN_RIGHT);
+                }
+        }
+    }
+public void downdecider(int cX, int cY){
+
+
+         if (w.hasBreeze(cX, cY))
+        {
+           if(w.hasBreeze(cX, cY+1) && w.isVisited(cX, cY-1)){//change
+                w.doAction(World.A_MOVE);
+            }
+            else if(!w.isValidPosition(cX, cY-2) && w.isVisited(cX, cY-1)){
+                w.doAction(World.A_MOVE);
+            }
+            else{
+                w.doAction(World.A_TURN_RIGHT);
+                w.doAction(World.A_MOVE);
+            }
+              
+            
+        }
+            
+         if (w.getDirection() == World.DIR_DOWN)
+        {
+
+            if(w.isValidPosition(cX+1, cY) )
+            {
+                w.doAction(World.A_TURN_LEFT);
+                w.doAction(World.A_MOVE);
+            }
+            else if(!w.isValidPosition(cX+1, cY) && !w.isValidPosition(cX, cY-1) )
+            {
+                w.doAction(World.A_TURN_RIGHT);
+                w.doAction(World.A_MOVE);
+            }
+            else
+            {
+                w.doAction(World.A_MOVE);
+            }
+           
+            
+        } 
+
+
+    }
+
+}
+
